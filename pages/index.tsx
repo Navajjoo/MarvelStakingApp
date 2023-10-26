@@ -39,10 +39,10 @@ const Home: NextPage = () => {
     if(!lymContract || !address) return;
 
     async function loadClaimableRewards() {
-      const stakeInfo = await lymContract?.call("getStakeInfo", address);
+      const stakeInfo = await lymContract?.call("getStakeInfo", [address]);
       setClaimableRewards(stakeInfo[1]);
-
     }
+    
 
     loadClaimableRewards();
   }, [address, lymContract]);
