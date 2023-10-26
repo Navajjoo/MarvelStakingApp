@@ -1,6 +1,10 @@
-import { ConnectWallet, useContract, useAddress, Web3Button, useOwnedNFTs, ThirdwebNftMedia } from "@thirdweb-dev/react";
+import { ConnectWallet, useContract, useAddress, Web3Button, useOwnedNFTs, ThirdwebNftMedia, useContractRead } from "@thirdweb-dev/react";
+import { ethers } from "ethers";
+import { BigNumber } from "ethers";
 import type { NextPage } from "next";
 import styles from "../styles/Home.module.css";
+import NFTCard from "./components/NFTCard";
+import { useEffect, useState } from "react";
 
 const Home: NextPage = () => {
   const address = useAddress();
@@ -12,21 +16,37 @@ const Home: NextPage = () => {
   const {contract: lymContract } = useContract(lymAddress);
 
   const {data: myMarvelNFTs} = useOwnedNFTs(marvelContract, address);
+  const { data: stakedMarvelNFTs } = useContractRead(lymContract,"getStakeInfo", address);
 
-  async function stakeNFT(nftId: string) {
-    if(!address) return;
-
-    const isAppoved = await marvelContract?.isApproved(
+  async function stakedNFT(nftId: string | undefined) {
+    if (!address || !nftId) return;
+  
+    const isApproved = await marvelContract?.isApproved(
       address,
       lymAddress
     );
-
-    if (!isAppoved) {
+  
+    if (!isApproved) {
       await marvelContract?.setApprovalForAll(lymAddress, true);
     }
+  
+    await lymContract?.call("stake", [nftId]);
+  }  
 
-    await lymContract?.call("stake", [nftId])
-  }
+  const [claimableRewards, setClaimableRewards] = useState<BigNumber>();
+
+  useEffect(() => {
+    if(!lymContract || !address) return;
+
+    async function loadClaimableRewards() {
+      const stakeInfo = await lymContract?.call("getStakeInfo", address);
+      setClaimableRewards(stakeInfo[1]);
+
+    }
+
+    loadClaimableRewards();
+  }, [address, lymContract]);
+
   return (
     <div className={styles.container}>
       <main className={styles.main}> 
@@ -48,11 +68,26 @@ const Home: NextPage = () => {
               />
               <Web3Button
                 contractAddress={lymAddress}
-                action={() => stakeNFT(nft.metadata.id)}
+                action={() => stakedNFT(nft.metadata.id)}
               >Stake Marvel</Web3Button>
             </div>
           ))}
         </div>
+        <h1>Staked Marvel:</h1>
+        <div>
+          {stakedMarvelNFTs && stakedMarvelNFTs[0].map((stakedNFT: BigNumber) => (
+            <div key={stakedNFT.toString()}>
+              <NFTCard tokenId={stakedNFT.toNumber()} />
+            </div>
+          ) )}
+        </div>
+        <br />
+        <h1>Claimable $RAVERSE: </h1>
+        {!claimableRewards ? "Loading..." : ethers.utils.formatUnits(claimableRewards, 18)}
+        <Web3Button
+          contractAddress={lymAddress}
+          action={(lymContract) => lymContract.call("claimRewards")}
+        >Claim $RAVERSE</Web3Button>
       </main>
     </div>
   );
