@@ -10,7 +10,7 @@ const Home: NextPage = () => {
   const address = useAddress();
 
   const marvelAddress = "0xf37A3686800A9fb19625c05e1A7ACf2D232e8aa4";
-  const lymAddress = "0x19A448F03fCb1d5c57369Bc1e440F11486aef5e2";
+  const lymAddress = "0x01Aaa44Ae99Cb0BC0604961E754191Bd51Df996C";
 
   const {contract: marvelContract } = useContract(marvelAddress, "nft-drop");
   const {contract: lymContract } = useContract(lymAddress);
@@ -43,7 +43,6 @@ const Home: NextPage = () => {
       setClaimableRewards(stakeInfo[1]);
     }
     
-
     loadClaimableRewards();
   }, [address, lymContract]);
 
