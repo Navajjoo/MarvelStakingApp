@@ -10,41 +10,41 @@ const Home: NextPage = () => {
   const address = useAddress();
 
   const marvelAddress = "0xf37A3686800A9fb19625c05e1A7ACf2D232e8aa4";
-  const lymAddress = "0x01Aaa44Ae99Cb0BC0604961E754191Bd51Df996C";
+  const stakingAddress = "0x19A448F03fCb1d5c57369Bc1e440F11486aef5e2";
 
   const {contract: marvelContract } = useContract(marvelAddress, "nft-drop");
-  const {contract: lymContract } = useContract(lymAddress);
+  const {contract: stakingContract } = useContract(stakingAddress);
 
   const {data: myMarvelNFTs} = useOwnedNFTs(marvelContract, address);
-  const { data: stakedMarvelNFTs } = useContractRead(lymContract,"getStakeInfo", address);
+  const { data: stakedMarvelNFTs } = useContractRead(stakingContract,"getStakeInfo", address);
 
   async function stakedNFT(nftId: string | undefined) {
     if (!address || !nftId) return;
   
     const isApproved = await marvelContract?.isApproved(
       address,
-      lymAddress
+      stakingAddress
     );
   
     if (!isApproved) {
-      await marvelContract?.setApprovalForAll(lymAddress, true);
+      await marvelContract?.setApprovalForAll(stakingAddress, true);
     }
   
-    await lymContract?.call("stake", [nftId]);
+    await stakingContract?.call("stake", [nftId]);
   }  
 
   const [claimableRewards, setClaimableRewards] = useState<BigNumber>();
 
   useEffect(() => {
-    if(!lymContract || !address) return;
+    if(!stakingContract || !address) return;
 
     async function loadClaimableRewards() {
-      const stakeInfo = await lymContract?.call("getStakeInfo", [address]);
+      const stakeInfo = await stakingContract?.call("getStakeInfo", [address]);
       setClaimableRewards(stakeInfo[1]);
     }
     
     loadClaimableRewards();
-  }, [address, lymContract]);
+  }, [address, stakingContract]);
 
   return (
     <div className={styles.container}>
@@ -66,7 +66,7 @@ const Home: NextPage = () => {
                 width="100px"
               />
               <Web3Button
-                contractAddress={lymAddress}
+                contractAddress={stakingAddress}
                 action={() => stakedNFT(nft.metadata.id)}
               >Stake Marvel</Web3Button>
             </div>
@@ -84,7 +84,7 @@ const Home: NextPage = () => {
         <h1>Claimable $RAVERSE: </h1>
         {!claimableRewards ? "Loading..." : ethers.utils.formatUnits(claimableRewards, 18)}
         <Web3Button
-          contractAddress={lymAddress}
+          contractAddress={stakingAddress}
           action={(lymContract) => lymContract.call("claimRewards")}
         >Claim $RAVERSE</Web3Button>
       </main>
