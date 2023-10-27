@@ -16,7 +16,7 @@ const Home: NextPage = () => {
   const {contract: stakingContract } = useContract(stakingAddress);
 
   const {data: myMarvelNFTs} = useOwnedNFTs(marvelContract, address);
-  const { data: stakedMarvelNFTs } = useContractRead(stakingContract,"getStakeInfo", address);
+  const { data: stakedMarvelNFTs } = useContractRead(stakingContract,"getStakeInfo", [address,]);
 
   async function stakedNFT(nftId: string | undefined) {
     if (!address || !nftId) return;
