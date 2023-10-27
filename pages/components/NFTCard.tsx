@@ -7,14 +7,14 @@ interface NFTCardProps {
 
 const NFTCard: FC<NFTCardProps> = ({ tokenId}) => {
     const marvelAddress = "0xf37A3686800A9fb19625c05e1A7ACf2D232e8aa4";
-    const lymAddress = "0x19A448F03fCb1d5c57369Bc1e440F11486aef5e2";
+    const stakingAddress = "0x19A448F03fCb1d5c57369Bc1e440F11486aef5e2";
     
     const { contract: marvelContract } = useContract(marvelAddress, "nft-drop");
-    const { contract: lymContract } = useContract(lymAddress);
+    const { contract: stakingContract } = useContract(stakingAddress);
     const { data: nft } = useNFT(marvelContract, tokenId);
 
     async function withdraw(nftId: string) {
-        await lymContract?.call("withdraw", [nftId]);
+        await stakingContract?.call("withdraw", [nftId]);
     }
 
     return (
@@ -28,7 +28,7 @@ const NFTCard: FC<NFTCardProps> = ({ tokenId}) => {
                         />
                     )}
                     <Web3Button     
-                        contractAddress={lymAddress}
+                        contractAddress={stakingAddress}
                         action={() => withdraw(nft.metadata.id)}
                     >Withdraw</Web3Button>
                 </div>
